@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -65,9 +66,12 @@ export class AlbumsController {
   )
   async create(
     @UploadedFile() file: Express.Multer.File,
-    @Body() artistDto: CreateAlbumDto,
+    @Body() albumDto: CreateAlbumDto,
   ) {
-    const artistExisting = await this.artistModel.findById(artistDto.artist);
+    if (!Types.ObjectId.isValid(albumDto.artist)) {
+      throw new BadRequestException('Invalid artist id');
+    }
+    const artistExisting = await this.artistModel.findById(albumDto.artist);
     if (!artistExisting) {
       throw new NotFoundException('Artist not found');
     }
@@ -77,8 +81,8 @@ export class AlbumsController {
     if (file?.mimetype?.includes('png')) folder = 'png';
     const newAlbum = new this.albumModel({
       artist: artistExisting._id,
-      name: artistDto.name,
-      date_at: Number(artistDto.date_at),
+      name: albumDto.name,
+      date_at: Number(albumDto.date_at),
       image: file ? `/uploads/${folder}/${file.filename}` : null,
     });
     return newAlbum.save();
@@ -89,7 +93,11 @@ export class AlbumsController {
   }
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    await this.albumModel.findByIdAndDelete(id);
-    return 'ok';
+    const deleted = await this.albumModel.findByIdAndDelete(id);
+    if (!deleted) {
+      throw new NotFoundException('Album not found');
+    }
+
+    return { message: 'Album deleted successfully.' };
   }
 }

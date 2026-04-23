@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   Post,
   UploadedFile,
@@ -74,7 +75,11 @@ export class ArtistsController {
   }
   @Delete(':id')
   async delete(@Param('id') id: string) {
-    await this.artistModel.findByIdAndDelete(id);
-    return 'ok';
+    const deleted = await this.artistModel.findByIdAndDelete(id);
+    if (!deleted) {
+      throw new NotFoundException('Track not found');
+    }
+
+    return { message: 'Artist deleted successfully.' };
   }
 }
