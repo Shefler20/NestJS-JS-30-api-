@@ -8,11 +8,13 @@ import { AlbumsController } from './albums/albums.controller';
 import { Album, AlbumSchema } from './schemas/album.schema';
 import { TracksController } from './tracks/tracks.controller';
 import { Track, TrackSchema } from './schemas/track.schema';
+import { User, UserSchema } from './schemas/user.schema';
 
 @Module({
   imports: [
     MongooseModule.forRoot('mongodb://localhost/music-api-js30'),
     MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
       { name: Artist.name, schema: ArtistSchema },
       { name: Album.name, schema: AlbumSchema },
       { name: Track.name, schema: TrackSchema },
