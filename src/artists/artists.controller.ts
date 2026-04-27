@@ -23,6 +23,8 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { TokenAuthGuard } from '../token-auth/token-auth.guard';
 import type { RequestWithUser } from '../common/types/request-with-user';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RoleAuthGuard } from '../role-auth/role-auth.guard';
 
 @Controller('artists')
 export class ArtistsController {
@@ -80,11 +82,13 @@ export class ArtistsController {
     });
     return newArtist.save();
   }
+  @UseGuards(TokenAuthGuard, RoleAuthGuard)
+  @Roles('admin')
   @Delete(':id')
   async delete(@Param('id') id: string) {
     const deleted = await this.artistModel.findByIdAndDelete(id);
     if (!deleted) {
-      throw new NotFoundException('Track not found');
+      throw new NotFoundException('Artist not found');
     }
 
     return { message: 'Artist deleted successfully.' };

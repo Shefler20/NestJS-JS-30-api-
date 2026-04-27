@@ -26,6 +26,8 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { RequestWithUser } from '../common/types/request-with-user';
 import { TokenAuthGuard } from '../token-auth/token-auth.guard';
+import { RoleAuthGuard } from '../role-auth/role-auth.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 
 @Controller('albums')
 export class AlbumsController {
@@ -96,6 +98,8 @@ export class AlbumsController {
   getAlbum(@Param('id') id: string) {
     return this.albumModel.findById(id).populate('artist');
   }
+  @UseGuards(TokenAuthGuard, RoleAuthGuard)
+  @Roles('admin')
   @Delete(':id')
   async delete(@Param('id') id: string) {
     const deleted = await this.albumModel.findByIdAndDelete(id);
