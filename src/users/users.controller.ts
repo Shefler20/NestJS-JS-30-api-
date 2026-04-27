@@ -1,10 +1,20 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { Model } from 'mongoose';
 import { CreateUserDto } from './create-user.dto';
 import type { Response, Request } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+import type { RequestWithUser } from '../common/types/request-with-user';
+import { TokenAuthGuard } from '../token-auth/token-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -43,5 +53,26 @@ export class UsersController {
     });
 
     return user;
+  }
+  @UseGuards(TokenAuthGuard)
+  @Delete('sessions')
+  async logout(
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: RequestWithUser,
+  ) {
+    const user = req.user;
+    if (!user.token) {
+      return { message: 'Already logged out' };
+    }
+
+    user.token = '';
+    await user.save();
+
+    res.clearCookie('token', {
+      httpOnly: true,
+      sameSite: 'strict',
+    });
+
+    return { message: 'Session deleted' };
   }
 }
