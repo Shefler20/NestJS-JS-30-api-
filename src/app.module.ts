@@ -9,10 +9,18 @@ import { Album, AlbumSchema } from './schemas/album.schema';
 import { TracksController } from './tracks/tracks.controller';
 import { Track, TrackSchema } from './schemas/track.schema';
 import { User, UserSchema } from './schemas/user.schema';
+import { UsersController } from './users/users.controller';
+import { ConfigModule } from '@nestjs/config';
+import { AuthService } from './auth/auth.service';
+import { LocalStrategy } from './auth/local.strategy';
 
 @Module({
   imports: [
     MongooseModule.forRoot('mongodb://localhost/music-api-js30'),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env.local', '.env'],
+    }),
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Artist.name, schema: ArtistSchema },
@@ -25,7 +33,8 @@ import { User, UserSchema } from './schemas/user.schema';
     ArtistsController,
     AlbumsController,
     TracksController,
+    UsersController,
   ],
-  providers: [AppService],
+  providers: [AppService, AuthService, LocalStrategy],
 })
 export class AppModule {}

@@ -3,7 +3,12 @@ import { Document } from 'mongoose';
 import jwt from 'jsonwebtoken';
 import argon2 from 'argon2';
 
-export type UserDocument = User & Document;
+export interface UserMethods {
+  generateAuthToken: () => string;
+  checkPassword(password: string): Promise<boolean>;
+}
+
+export type UserDocument = User & Document & UserMethods;
 
 @Schema()
 export class User {
@@ -48,14 +53,14 @@ UserSchema.methods.generateAuthToken = function (this: UserDocument) {
     throw new Error('JWT_SECRET is not defined');
   }
 
-  this.token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
+  return (this.token = jwt.sign({ _id: this._id }, process.env.JWT_SECRET, {
     expiresIn: '7d',
-  });
+  }));
 };
 
 UserSchema.set('toJSON', {
   transform: (_doc, ret) => {
-    const { username, token, role, displayName } = ret;
-    return { username, token, role, displayName };
+    const { username, role, displayName } = ret;
+    return { username, role, displayName };
   },
 });
